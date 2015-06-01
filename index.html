@@ -4,6 +4,7 @@
 	<meta charset="UTF-8" />
     <title>Phaser - Making your first game, part 7</title>
     <script src="lib/phaser.min.js"></script>
+    <script src="lib/socket.io.js"></script>
     <!--<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>-->
     <style type="text/css">
         body {
@@ -37,6 +38,11 @@ var ballGroup;
 
 function create() {
 
+    // Playing around here
+    console.log(io);
+    var socket = io('google.com');
+    console.log(socket);
+    
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
