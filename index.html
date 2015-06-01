@@ -1,0 +1,128 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+	<meta charset="UTF-8" />
+    <title>Phaser - Making your first game, part 7</title>
+    <script src="//cdn.jsdelivr.net/phaser/2.2.2/phaser.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+function preload() {
+
+    game.load.image('sky', 'assets/sky.png');
+    game.load.image('paddle', 'assets/paddle.png');
+    game.load.image('ball', 'assets/ball.png');
+    game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
+
+}
+
+var platforms;
+var cursors;
+var ledge1, ledge2;
+var playerLedge;
+var paddleSpeed = 350;
+var ball;
+var ballSpeed = 350;
+var ballGroup;
+
+function create() {
+
+    //  We're going to be using physics, so enable the Arcade Physics system
+    game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    //  A simple background for our game
+    game.add.sprite(0, 0, 'sky');
+    
+    ballGroup = game.add.group();
+    ballGroup.enableBody = true;
+    ball = ballGroup.create(300, 300, 'ball');
+//    ball = game.add.sprite(game.world.centerX - 15, game.world.centerY - 15, 'ball');
+    ball.body.collideWorldBounds = true;
+    ball.body.bounce.setTo(1,1);
+    ball.body.velocity.x = ballSpeed / Math.sqrt(2);
+    ball.body.velocity.y = ballSpeed / Math.sqrt(2);
+    
+    //  The platforms group contains the paddle and the 2 ledges we can jump on
+    platforms = game.add.group();
+
+    //  We will enable physics for any object that is created in this group
+    platforms.enableBody = true;
+    //  Now let's create two ledges
+    ledge1 = platforms.create(50, 10, 'paddle');
+    //ledge2 = platforms.create(game.width - 50 - ledge1.body.width, 10, 'paddle');
+    ledge1.body.immovable = true;
+    //ledge2.body.immovable = true;
+    playerLedge = ledge1;
+    ledge1.body.collideWorldBounds = true;
+    //ledge2.body.collideWorldBounds = true;
+    //  Our controls.
+    cursors = game.input.keyboard.createCursorKeys();
+    
+}
+
+function update() {
+
+    //  Collide the player and the stars with the platforms
+    game.physics.arcade.collide(ball, platforms);
+
+    //  Reset the players velocity (movement)
+    
+    
+    if (game.input.activePointer.isDown) {
+        if (game.input.activePointer.y > game.height/2)
+            playerLedge.body.velocity.y = paddleSpeed;
+        else 
+            playerLedge.body.velocity.y = -paddleSpeed;
+    } else playerLedge.body.velocity.y = 0;
+    if (ball.x < 2) {
+        resetBall();
+    }
+    /*
+    if (cursors.left.isDown)
+    {
+        //  Move to the left
+        player.body.velocity.x = -150;
+
+        player.animations.play('left');
+    }
+    else if (cursors.right.isDown)
+    {
+        //  Move to the right
+        player.body.velocity.x = 150;
+
+        player.animations.play('right');
+    }
+    else
+    {
+        //  Stand still
+        player.animations.stop();
+
+        player.frame = 4;
+    }
+    
+    //  Allow the player to jump if they are touching the paddle.
+    if (cursors.up.isDown && player.body.touching.down)
+    {
+        player.body.velocity.y = -350;
+    }
+*/
+}
+function resetBall() {
+        ball.x = 300;
+        ball.y = 300;
+        //ball.body.velocity.x *= -1;
+}
+</script>
+
+</body>
+</html>
