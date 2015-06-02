@@ -30,18 +30,22 @@ function preload() {
 var platforms;
 var cursors;
 var ledge1, ledge2;
-var playerLedge;
+var playerLedge, opponentLedge;
 var paddleSpeed = 350;
 var ball;
 var ballSpeed = 350;
 var ballGroup;
+var socket;
 
 function create() {
 
     // Playing around here
     console.log(io);
-    var socket = io('google.com');
+    socket = io('https://188.226.175.184', {secure: true});
     console.log(socket);
+    socket.on('server game data', function (msg) {
+        opponentLedge.y = msg;
+    });
     
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -65,16 +69,21 @@ function create() {
     platforms.enableBody = true;
     //  Now let's create two ledges
     ledge1 = platforms.create(50, 10, 'paddle');
-    //ledge2 = platforms.create(game.width - 50 - ledge1.body.width, 10, 'paddle');
+    ledge2 = platforms.create(game.width - 50 - ledge1.body.width, 10, 'paddle');
     ledge1.body.immovable = true;
-    //ledge2.body.immovable = true;
+    ledge2.body.immovable = true;
     playerLedge = ledge1;
+    opponentLedge = ledge2;
+    
     ledge1.body.collideWorldBounds = true;
-    //ledge2.body.collideWorldBounds = true;
+    ledge2.body.collideWorldBounds = true;
+    
+    
     //  Our controls.
     cursors = game.input.keyboard.createCursorKeys();
     
 }
+var counter = 0;
 
 function update() {
 
@@ -90,9 +99,11 @@ function update() {
         else 
             playerLedge.body.velocity.y = -paddleSpeed;
     } else playerLedge.body.velocity.y = 0;
-    if (ball.x < 2) {
+    if (ball.x < 2 ||ball.x > game.width-ball.body.width-2) {
         resetBall();
     }
+    counter++;
+    if (counter%10 == 0) socket.emit('game data', playerLedge.y);
     /*
     if (cursors.left.isDown)
     {
@@ -128,6 +139,7 @@ function resetBall() {
         ball.y = 300;
         //ball.body.velocity.x *= -1;
 }
+
 </script>
 
 </body>
