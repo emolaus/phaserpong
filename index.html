@@ -6,6 +6,7 @@
     <script src="lib/phaser.min.js"></script>
     <script src="lib/socket.io.js"></script>
     <script src="config/sshconfig.js"></script>
+    <script src="scripts/servertalk.js"></script>
     <!--<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>-->
     <style type="text/css">
         body {
@@ -36,21 +37,14 @@ var paddleSpeed = 350;
 var ball;
 var ballSpeed = 350;
 var ballGroup;
-var socket;
-var IP = '188.226.175.184';
-
+var serverTalk;
 function create() {
 
-    // Playing around here
-    console.log(io);
     // usessh is set in config/sshconfig.js
-    if (usessh)
-        socket = io('https://' + IP, {secure: true});
-    else 
-        socket = io('http://' + IP);
-    console.log(socket);
-    socket.on('server game data', function (msg) {
-        opponentLedge.y = msg;
+    serverTalk = new ServerTalk();
+    serverTalk.init(io, usessh);
+    serverTalk.registerDataCallback(function(data) {
+        opponentLedge.y = data;
     });
     
     //  We're going to be using physics, so enable the Arcade Physics system
@@ -109,7 +103,7 @@ function update() {
         resetBall();
     }
     counter++;
-    if (counter%10 == 0) socket.emit('game data', playerLedge.y);
+    if (counter%10 == 0) serverTalk.sendGameData(playerLedge.y); 
     /*
     if (cursors.left.isDown)
     {
