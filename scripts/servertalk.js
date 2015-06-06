@@ -10,14 +10,14 @@ ServerTalk.prototype.init = function (io, usessh) {
         this.socket = io('http://' + this.IP);
     console.log(this.socket);
     
-    /*this.socket.emit('register');
+    
     this.socket.on('registered', function (msg) {
         if (msg.host)
             console.log('You are host');
         else 
             console.log('You are player 2');
     });
-    */
+
 }
 ServerTalk.prototype.sendGameData = function(data) {
     this.socket.emit('game data', data);
