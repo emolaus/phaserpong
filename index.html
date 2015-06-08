@@ -42,12 +42,14 @@ var registered = false;
 var isHost = false;
 var sendData = {};
 var countDebugOutput = 0;
+var hasOpponent = false;
+var socket = null;
 function create() {
     
     // Setup server
     serverTalk = new ServerTalk();
     // usessh is set in config/sshconfig.js
-    serverTalk.init(io, usessh);
+    socket = serverTalk.init(io, usessh);
     // Host? Then be left paddle, else right 
     serverTalk.isHostCallback(function (msg) {
         if (!msg.success) {
@@ -76,6 +78,10 @@ function create() {
             ball.body.velocity.y = data.ball.velocity.y;
         } 
     });
+    serverTalk.onRemoveOpponent(removeOpponent);
+    serverTalk.onAddOpponent(addOpponent);
+    //socket.on('add opponent', addOpponent);
+    //socket.on('remove opponent', removeOpponent);
     
     //  We're going to be using physics, so enable the Arcade Physics system
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -173,6 +179,12 @@ function resetBall() {
         ball.x = 300;
         ball.y = 300;
         //ball.body.velocity.x *= -1;
+}
+function addOpponent() {
+    console.log('New opponent!');
+}
+function removeOpponent() {
+    console.log('Opponent left!');
 }
 
 </script>

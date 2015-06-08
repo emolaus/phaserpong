@@ -1,4 +1,4 @@
-var sendDataInterval = 100;
+var sendDataInterval = 30;
 var displayPackSentInterval = 10000;
 function ServerTalk() {
     this.socket = null;
@@ -14,7 +14,6 @@ ServerTalk.prototype.init = function (io, usessh) {
         this.socket = io('https://' + this.IP, {secure: true});
     else 
         this.socket = io('http://' + this.IP);
-    console.log(this.socket);
     var self = this;
     setInterval(function () {
         if (!self.sendData) return;
@@ -34,6 +33,7 @@ ServerTalk.prototype.init = function (io, usessh) {
     this.socket.on('test', function (msg){
         console.log(msg.msg);
     });
+    return socket;
 }
 ServerTalk.prototype.sendGameData = function(data) {
     this.sendData = data;
@@ -47,5 +47,15 @@ ServerTalk.prototype.isHostCallback = function (callback) {
         var info = msg.host ? 'host' : 'guest';
         console.log('Game registered. You are ' + info);
         callback(msg);
+    });
+}
+ServerTalk.prototype.onRemoveOpponent = function (callback) {
+    this.socket.on('remove opponent', function () {
+        callback();
+    });
+}
+ServerTalk.prototype.onAddOpponent = function (callback) {
+    this.socket.on('add opponent', function () {
+        callback();
     });
 }
