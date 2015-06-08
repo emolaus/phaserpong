@@ -18,7 +18,7 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var game = new Phaser.Game(600, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() {
 
@@ -39,24 +39,42 @@ var ballSpeed = 350;
 var ballGroup;
 var serverTalk;
 var registered = false;
+var isHost = false;
+var sendData = {};
+var countDebugOutput = 0;
 function create() {
-
-    // usessh is set in config/sshconfig.js
+    
+    // Setup server
     serverTalk = new ServerTalk();
+    // usessh is set in config/sshconfig.js
     serverTalk.init(io, usessh);
     // Host? Then be left paddle, else right 
-    serverTalk.isHostCallback(function (host) {
-        if (host) {
+    serverTalk.isHostCallback(function (msg) {
+        if (!msg.success) {
+            console.log("Failed registering game");
+            return;
+        }
+        if (msg.host) {
             playerLedge = ledge1;
-            opponentLedge = ledge2;        
+            opponentLedge = ledge2;  
+            sendData.ball = {x: 0, y: 0};
+            sendData.ball.velocity = {x: 0, y: 0};
         } else {
             playerLedge = ledge2;
             opponentLedge = ledge1;        
         }
         registered = true;
+        isHost = msg.host;
     });
     serverTalk.registerDataCallback(function(data) {
-        opponentLedge.y = data;
+
+        opponentLedge.y = data.ledgeY;
+        if (!isHost) {
+            ball.x = data.ball.x;
+            ball.y = data.ball.y;
+            ball.body.velocity.x = data.ball.velocity.x;
+            ball.body.velocity.y = data.ball.velocity.y;
+        } 
     });
     
     //  We're going to be using physics, so enable the Arcade Physics system
@@ -96,8 +114,6 @@ function create() {
     cursors = game.input.keyboard.createCursorKeys();
     
 }
-var counter = 0;
-
 function update() {
     if (!registered) return;
     //  Collide the player and the stars with the platforms
@@ -115,8 +131,14 @@ function update() {
     if (ball.x < 2 ||ball.x > game.width-ball.body.width-2) {
         resetBall();
     }
-    counter++;
-    if (counter%10 == 0) serverTalk.sendGameData(playerLedge.y); 
+    sendData.ledgeY = playerLedge.y;
+    if (isHost) {
+        sendData.ball.x = ball.x;
+        sendData.ball.y = ball.y;
+        sendData.ball.velocity.x = ball.body.velocity.x;
+        sendData.ball.velocity.y = ball.body.velocity.y;
+    }
+    serverTalk.sendGameData(sendData); 
     /*
     if (cursors.left.isDown)
     {
