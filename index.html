@@ -38,11 +38,23 @@ var ball;
 var ballSpeed = 350;
 var ballGroup;
 var serverTalk;
+var registered = false;
 function create() {
 
     // usessh is set in config/sshconfig.js
     serverTalk = new ServerTalk();
     serverTalk.init(io, usessh);
+    // Host? Then be left paddle, else right 
+    serverTalk.isHostCallback(function (host) {
+        if (host) {
+            playerLedge = ledge1;
+            opponentLedge = ledge2;        
+        } else {
+            playerLedge = ledge2;
+            opponentLedge = ledge1;        
+        }
+        registered = true;
+    });
     serverTalk.registerDataCallback(function(data) {
         opponentLedge.y = data;
     });
@@ -72,8 +84,9 @@ function create() {
     ledge2 = platforms.create(game.width - 50 - ledge1.body.width, 10, 'paddle');
     ledge1.body.immovable = true;
     ledge2.body.immovable = true;
+    // Silly solution while scetching
     playerLedge = ledge1;
-    opponentLedge = ledge2;
+    opponentLedge = ledge2; 
     
     ledge1.body.collideWorldBounds = true;
     ledge2.body.collideWorldBounds = true;
@@ -86,7 +99,7 @@ function create() {
 var counter = 0;
 
 function update() {
-
+    if (!registered) return;
     //  Collide the player and the stars with the platforms
     game.physics.arcade.collide(ball, platforms);
 
